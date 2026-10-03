@@ -69,6 +69,6 @@ AUDIT_METHODS = (
 )
 
 SUBMISSION_METHODS = {
-    "method1": LAB_WEIGHTED_EQUAL,
+    "method1": HSV_BEST_OBSERVED,
     "method2": LAB_WEIGHTED,
 }
