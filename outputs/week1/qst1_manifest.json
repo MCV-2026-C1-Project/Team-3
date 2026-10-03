@@ -1,0 +1,61 @@
+{
+  "k": 10,
+  "query_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+  ],
+  "methods": {
+    "method1": {
+      "name": "Improved Lab - simple",
+      "color_space": "lab",
+      "bins": 40,
+      "sigma": 0.0,
+      "metric": "l1",
+      "channel_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    },
+    "method2": {
+      "name": "Improved Lab - tuned",
+      "color_space": "lab",
+      "bins": 48,
+      "sigma": 0.5,
+      "metric": "hellinger",
+      "channel_weights": [
+        0.125,
+        0.5,
+        0.375
+      ]
+    }
+  }
+}
