@@ -3,3 +3,4 @@
 grid_search_results.csv
 __pycache__/
 .ipynb_checkpoints/
+*.pyc
