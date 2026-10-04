@@ -82,9 +82,6 @@ scripts/
 outputs/week1/                 generated tables, pickles, and manifest
 ```
 
-The reusable code lives directly in `src/` so later weeks can import the same
-dataset, distance, evaluation, and retrieval utilities.
-
 ## Setup
 
 From the repository root:
