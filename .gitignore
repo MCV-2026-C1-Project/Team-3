@@ -1,4 +1,5 @@
-/data
+week1/data
+week2/data
 /notebooks
 grid_search_results.csv
 __pycache__/
