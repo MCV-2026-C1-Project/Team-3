@@ -8,6 +8,9 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 
 
+_HIST_TYPES = ("1d", "2d", "3d")
+
+
 @dataclass(frozen=True)
 class SpatialHistogramConfig:
     """Configuration for a concatenated block or pyramid Lab descriptor."""
@@ -16,6 +19,8 @@ class SpatialHistogramConfig:
     bins: int = 48
     sigma: float = 0.5
     channel_weights: tuple[float, float, float] = (0.125, 0.5, 0.375)
+    hist_type: str = "1d"
+    level_weights: tuple[float, ...] | str | None = None
 
     def __post_init__(self) -> None:
         if not self.levels or any(level <= 0 for level in self.levels):
@@ -28,6 +33,17 @@ class SpatialHistogramConfig:
             raise ValueError("channel_weights must contain three non-negative values")
         if not np.isclose(sum(self.channel_weights), 1.0):
             raise ValueError("channel_weights must sum to one")
+        if self.hist_type not in _HIST_TYPES:
+            raise ValueError(f"hist_type must be one of {_HIST_TYPES}")
+        if isinstance(self.level_weights, str):
+            if self.level_weights != "pyramid":
+                raise ValueError("level_weights must be None, 'pyramid' or a sequence")
+        elif self.level_weights is not None and (
+            len(self.level_weights) != len(self.levels)
+            or any(weight < 0 for weight in self.level_weights)
+            or sum(self.level_weights) <= 0
+        ):
+            raise ValueError("level_weights needs one non-negative value per level")
 
 
 WEEK2_BLOCK_CONFIG = SpatialHistogramConfig()
@@ -35,9 +51,6 @@ WEEK2_BLOCK_CONFIG = SpatialHistogramConfig()
 
 def _grid_edges(length: int, level: int) -> np.ndarray:
     return np.linspace(0, length, level + 1, dtype=int)
-
-
-_HIST_TYPES = ("1d", "2d", "3d")
 
 
 def _resolve_level_weights(level_weights, n_levels: int) -> np.ndarray:
@@ -233,10 +246,23 @@ def descriptor(
     bins: int = 48,
     sigma: float = 0.5,
     weights: tuple[float, float, float] = (0.125, 0.5, 0.375),
+    hist_type: str = "1d",
+    level_weights: Sequence[float] | str | None = None,
 ) -> np.ndarray:
-    """Compute the complete-image block descriptor used in Tasks 1 and 2."""
+    """Compute a complete-image block or pyramid descriptor."""
+    if hist_type != "1d":
+        features = simple_segment_and_histogram(
+            image,
+            levels,
+            bins=bins,
+            hist_type=hist_type,
+            level_weights=level_weights,
+        )
+        return features / max(float(features.sum()), 1e-12)
+
     parts: list[np.ndarray] = []
-    for level in levels:
+    resolved_level_weights = _resolve_level_weights(level_weights, len(levels))
+    for level, level_weight in zip(levels, resolved_level_weights):
         histograms = simple_segment_and_histogram(image, level, bins=bins).reshape(
             level * level, 3, bins
         )
@@ -244,8 +270,8 @@ def descriptor(
             histograms = gaussian_filter1d(histograms, sigma, axis=2, mode="nearest")
             histograms /= np.maximum(histograms.sum(axis=2, keepdims=True), 1e-12)
         histograms *= np.asarray(weights, dtype=np.float32)[None, :, None]
-        parts.append(histograms.ravel() / histograms.sum())
-    return np.concatenate(parts) / len(levels)
+        parts.append(histograms.ravel() * np.float32(level_weight))
+    return np.concatenate(parts)
 
 
 def crop_to_mask(image: np.ndarray, mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -267,6 +293,8 @@ def descriptor_masked(
     sigma: float = 0.5,
     weights: tuple[float, float, float] = (0.125, 0.5, 0.375),
     crop: bool = True,
+    hist_type: str = "1d",
+    level_weights: Sequence[float] | str | None = None,
 ) -> np.ndarray:
     """Compute the block Lab descriptor using only foreground pixels.
 
@@ -283,13 +311,23 @@ def descriptor_masked(
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     mask_u8 = np.ascontiguousarray(mask.astype(np.uint8))
     height, width = mask_u8.shape
+    if hist_type not in _HIST_TYPES:
+        raise ValueError(f"hist_type must be one of {_HIST_TYPES}")
+    if hist_type != "1d" and weights != (0.125, 0.5, 0.375):
+        raise ValueError("per-channel weights are only defined for hist_type='1d'")
+    resolved_level_weights = _resolve_level_weights(level_weights, len(levels))
     channel_weights = np.asarray(weights, dtype=np.float32)
     parts: list[np.ndarray] = []
 
-    for level in levels:
+    for level, level_weight in zip(levels, resolved_level_weights):
         y_edges = _grid_edges(height, level)
         x_edges = _grid_edges(width, level)
-        histograms = np.zeros((level * level, 3, bins), dtype=np.float32)
+        block_shape = {
+            "1d": (3, bins),
+            "2d": (bins, bins),
+            "3d": (bins, bins, bins),
+        }[hist_type]
+        histograms = np.zeros((level * level, *block_shape), dtype=np.float32)
         foreground_area = np.zeros(level * level, dtype=np.float32)
 
         for row in range(level):
@@ -302,19 +340,43 @@ def descriptor_masked(
                 if foreground_area[index] == 0:
                     continue
                 block = np.ascontiguousarray(lab[ys, xs])
-                for channel in range(3):
+                if hist_type == "1d":
+                    for channel in range(3):
+                        histogram = cv2.calcHist(
+                            [block], [channel], block_mask, [bins], [0, 256]
+                        ).ravel()
+                        histograms[index, channel] = histogram / max(
+                            float(histogram.sum()), 1e-12
+                        )
+                elif hist_type == "2d":
                     histogram = cv2.calcHist(
-                        [block], [channel], block_mask, [bins], [0, 256]
-                    ).ravel()
-                    histograms[index, channel] = histogram / max(float(histogram.sum()), 1e-12)
+                        [block],
+                        [1, 2],
+                        block_mask,
+                        [bins, bins],
+                        [0, 256, 0, 256],
+                    )
+                    histograms[index] = histogram / max(float(histogram.sum()), 1e-12)
+                else:
+                    histogram = cv2.calcHist(
+                        [block],
+                        [0, 1, 2],
+                        block_mask,
+                        [bins] * 3,
+                        [0, 256] * 3,
+                    )
+                    histograms[index] = histogram / max(float(histogram.sum()), 1e-12)
 
-        if sigma > 0:
+        if sigma > 0 and hist_type == "1d":
             histograms = gaussian_filter1d(histograms, sigma, axis=2, mode="nearest")
             histograms /= np.maximum(histograms.sum(axis=2, keepdims=True), 1e-12)
-        histograms *= (foreground_area / foreground_area.sum())[:, None, None]
-        histograms *= channel_weights[None, :, None]
-        parts.append(histograms.ravel() / histograms.sum())
-    return np.concatenate(parts) / len(levels)
+        histograms *= (foreground_area / max(float(foreground_area.sum()), 1e-12))[
+            (...,) + (None,) * len(block_shape)
+        ]
+        if hist_type == "1d":
+            histograms *= channel_weights[None, :, None]
+        parts.append(histograms.ravel() * np.float32(level_weight))
+    return np.concatenate(parts)
 
 
 def describe_images(
@@ -334,6 +396,8 @@ def describe_images(
                     bins=config.bins,
                     sigma=config.sigma,
                     weights=config.channel_weights,
+                    hist_type=config.hist_type,
+                    level_weights=config.level_weights,
                 )
                 for image in images
             ]
@@ -347,6 +411,8 @@ def describe_images(
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image, mask in zip(images, masks)
         ]

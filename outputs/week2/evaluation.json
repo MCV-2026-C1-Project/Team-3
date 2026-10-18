@@ -1,0 +1,36 @@
+{
+  "method": {
+    "levels": [
+      1,
+      2,
+      5
+    ],
+    "bins": 48,
+    "sigma": 0.5,
+    "channel_weights": [
+      0.125,
+      0.5,
+      0.375
+    ],
+    "hist_type": "3d",
+    "level_weights": "pyramid"
+  },
+  "task2_qsd1_retrieval": {
+    "mAP@1": 0.7,
+    "mAP@5": 0.7194444444444444
+  },
+  "task4_mask_macro": {
+    "precision": 0.9549949378289125,
+    "recall": 0.9784860011014825,
+    "f1": 0.9650267623778095
+  },
+  "task4_mask_micro": {
+    "precision": 0.9794923661446737,
+    "recall": 0.9887824040372502,
+    "f1": 0.9841154611184169
+  },
+  "task5_qsd2_retrieval": {
+    "mAP@1": 0.5666666666666667,
+    "mAP@5": 0.6166666666666667
+  }
+}

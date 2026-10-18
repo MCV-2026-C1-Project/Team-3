@@ -64,6 +64,8 @@ def main() -> int:
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image in database_images
         ]
@@ -76,6 +78,8 @@ def main() -> int:
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image in qst1_images
         ]
@@ -93,6 +97,8 @@ def main() -> int:
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image in database_images
         ]
@@ -106,6 +112,8 @@ def main() -> int:
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image, mask in zip(qst2_images, qst2_masks)
         ]

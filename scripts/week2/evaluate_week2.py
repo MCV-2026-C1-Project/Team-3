@@ -3,6 +3,7 @@
 import argparse
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -30,8 +31,7 @@ def project_path(path: Path) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
-def describe_complete(images: list[np.ndarray]) -> np.ndarray:
-    config = WEEK2_BLOCK_5X5
+def describe_complete(images: list[np.ndarray], config) -> np.ndarray:
     return np.asarray(
         [
             descriptor(
@@ -40,14 +40,17 @@ def describe_complete(images: list[np.ndarray]) -> np.ndarray:
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image in images
         ]
     )
 
 
-def describe_masked(images: list[np.ndarray], masks: list[np.ndarray] | None) -> np.ndarray:
-    config = WEEK2_BLOCK_5X5
+def describe_masked(
+    images: list[np.ndarray], masks: list[np.ndarray] | None, config
+) -> np.ndarray:
     if masks is None:
         masks = [None] * len(images)
     return np.asarray(
@@ -59,6 +62,8 @@ def describe_masked(images: list[np.ndarray], masks: list[np.ndarray] | None) ->
                 bins=config.bins,
                 sigma=config.sigma,
                 weights=config.channel_weights,
+                hist_type=config.hist_type,
+                level_weights=config.level_weights,
             )
             for image, mask in zip(images, masks)
         ]
@@ -79,6 +84,32 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("outputs/week2/evaluation.json"),
         help="JSON summary written after evaluation",
     )
+    parser.add_argument(
+        "--levels",
+        type=int,
+        nargs="+",
+        default=None,
+        help="One or more spatial grid sizes, from coarsest to finest",
+    )
+    parser.add_argument(
+        "--hist-type",
+        choices=("1d", "2d", "3d"),
+        default=None,
+        help="Histogram representation used for retrieval descriptors",
+    )
+    level_weights = parser.add_mutually_exclusive_group()
+    level_weights.add_argument(
+        "--pyramid-weights",
+        action="store_true",
+        help="Use Lazebnik spatial-pyramid level weights",
+    )
+    level_weights.add_argument(
+        "--level-weights",
+        type=float,
+        nargs="+",
+        default=None,
+        help="Explicit non-negative weight for each selected level",
+    )
     return parser
 
 
@@ -90,10 +121,22 @@ def main() -> int:
     database_images = read_images(database)
     qsd1_images = read_images(qsd1)
     qsd2_images = read_images(qsd2)
+    config = replace(
+        WEEK2_BLOCK_5X5,
+        levels=tuple(args.levels) if args.levels is not None else WEEK2_BLOCK_5X5.levels,
+        hist_type=args.hist_type or WEEK2_BLOCK_5X5.hist_type,
+        level_weights=(
+            "pyramid"
+            if args.pyramid_weights
+            else tuple(args.level_weights)
+            if args.level_weights is not None
+            else WEEK2_BLOCK_5X5.level_weights
+        ),
+    )
 
     qsd1_ground_truth = load_ground_truth(project_path(args.qsd1_dir) / "gt_corresps.pkl")
-    complete_database = describe_complete(database_images)
-    qsd1_features = describe_complete(qsd1_images)
+    complete_database = describe_complete(database_images, config)
+    qsd1_features = describe_complete(qsd1_images, config)
     qsd1_rankings = retrieve_from_features(
         qsd1_features, complete_database, database.ids, k=10
     )
@@ -118,8 +161,8 @@ def main() -> int:
     )
 
     qsd2_ground_truth = load_ground_truth(project_path(args.qsd2_dir) / "gt_corresps.pkl")
-    masked_database = describe_masked(database_images, masks=None)
-    qsd2_features = describe_masked(qsd2_images, predicted_masks)
+    masked_database = describe_masked(database_images, masks=None, config=config)
+    qsd2_features = describe_masked(qsd2_images, predicted_masks, config=config)
     qsd2_rankings = retrieve_from_features(
         qsd2_features, masked_database, database.ids, k=10
     )
@@ -135,10 +178,12 @@ def main() -> int:
         json.dumps(
             {
                 "method": {
-                    "levels": list(WEEK2_BLOCK_5X5.levels),
-                    "bins": WEEK2_BLOCK_5X5.bins,
-                    "sigma": WEEK2_BLOCK_5X5.sigma,
-                    "channel_weights": list(WEEK2_BLOCK_5X5.channel_weights),
+                    "levels": list(config.levels),
+                    "bins": config.bins,
+                    "sigma": config.sigma,
+                    "channel_weights": list(config.channel_weights),
+                    "hist_type": config.hist_type,
+                    "level_weights": config.level_weights,
                 },
                 "task2_qsd1_retrieval": task2,
                 "task4_mask_macro": macro,

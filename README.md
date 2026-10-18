@@ -127,6 +127,22 @@ python scripts/week2/evaluate_week2.py
 
 This writes the machine-readable summary to `outputs/week2/evaluation.json` by default.
 
+The evaluator keeps the selected 5x5, 1D descriptor by default. Pyramid and joint
+Lab representations can be evaluated without changing the source configuration:
+
+```bash
+python scripts/week2/evaluate_week2.py --levels 1 2 4 --pyramid-weights
+python scripts/week2/evaluate_week2.py --levels 1 2 4 --hist-type 2d --pyramid-weights
+python scripts/week2/evaluate_week2.py --levels 1 2 --hist-type 3d --level-weights 0.4 0.6
+```
+
+`1d` represents independent L, a, and b histograms, `2d` represents a joint a-b
+histogram, and `3d` represents a joint L-a-b histogram. The 2D and 3D options
+should use fewer bins because their feature vectors grow quadratically or
+cubically with the bin count. The same representation and level weights are
+used for complete and masked retrieval, and the selected method is recorded in
+the evaluation JSON.
+
 Generate and validate the Week 2 submission with:
 
 ```bash
