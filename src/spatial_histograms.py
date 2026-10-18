@@ -37,52 +37,127 @@ def _grid_edges(length: int, level: int) -> np.ndarray:
     return np.linspace(0, length, level + 1, dtype=int)
 
 
+_HIST_TYPES = ("1d", "2d", "3d")
+
+
+def _resolve_level_weights(level_weights, n_levels: int) -> np.ndarray:
+    """Return pyramid level weights that sum to one."""
+    if level_weights is None:
+        w = np.ones(n_levels, dtype=np.float64)  # equal weights
+    elif isinstance(level_weights, str):
+        if level_weights != "pyramid":
+            raise ValueError("level_weights must be None, 'pyramid' or a sequence")
+        # Lazebnik et al.: coarsest level 1/2^L, level i (i>=1) 1/2^(L-i+1)
+        L = n_levels - 1
+        w = np.array([1 / 2**L] + [1 / 2 ** (L - i + 1) for i in range(1, n_levels)])
+    else:
+        w = np.asarray(level_weights, dtype=np.float64)
+        if w.shape != (n_levels,) or np.any(w < 0) or w.sum() <= 0:
+            raise ValueError("level_weights needs one non-negative value per level")
+    return w / w.sum()
+
+
 def simple_segment_and_histogram(
     image: np.ndarray,
-    level: int,
+    level: int | Sequence[int],
     bins: int = 48,
     plot: bool = False,
     normalize: bool = True,
     weights: Sequence[float] | None = None,
+    hist_type: str = "1d",
+    level_weights: Sequence[float] | str | None = None,
 ) -> np.ndarray:
-    """Split a BGR image into a grid and concatenate per-block Lab histograms.
+    """Split a BGR image into grid blocks and concatenate per-block Lab histograms.
 
-    This is the original Task 1 implementation moved out of the notebook. It
-    returns ``level * level * 3 * bins`` values in row-major block order.
+    Parameters
+    ----------
+    level : int or sequence of int
+        Grid size(s). An int gives a single block representation; a sequence
+        (e.g. ``(1, 2, 4)``) gives a spatial pyramid whose per-level vectors are
+        concatenated, coarsest to finest in the order given.
+    hist_type : {"1d", "2d", "3d"}
+        "1d": three independent L, a, b histograms (``3 * bins`` per block).
+        "2d": joint a-b histogram (``bins**2`` per block).
+        "3d": joint L-a-b histogram (``bins**3`` per block). Use small ``bins``
+        (8-16) for 2d/3d, since 48 bins in 3D is 110,592 values per block.
+    weights : per-channel Lab weights, only valid for ``hist_type="1d"``.
+    level_weights : None (equal), "pyramid" (Lazebnik weights, finer levels
+        weigh more) or one non-negative value per level. Normalised to sum to one.
+
+    Each level is laid out in row-major block order, so the output length is
+    ``sum(level_i**2 * features_per_block)``. A single level with the defaults
+    reproduces the original output.
     """
-    if level <= 0 or bins <= 0:
-        raise ValueError("level and bins must be positive")
+    if bins <= 0:
+        raise ValueError("bins must be positive")
+    if hist_type not in _HIST_TYPES:
+        raise ValueError(f"hist_type must be one of {_HIST_TYPES}")
+    levels = (int(level),) if np.isscalar(level) else tuple(int(l) for l in level)
+    if not levels or any(l <= 0 for l in levels):
+        raise ValueError("level must contain positive grid sizes")
+    if weights is not None and hist_type != "1d":
+        raise ValueError("per-channel weights are only defined for hist_type='1d'")
+    if plot and hist_type != "1d":
+        raise ValueError("plot is only supported for hist_type='1d'")
 
     height, width = image.shape[:2]
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    y_edges = _grid_edges(height, level)
-    x_edges = _grid_edges(width, level)
-    histograms = np.empty((level * level, 3, bins), dtype=np.float32)
-
-    for row in range(level):
-        for column in range(level):
-            index = row * level + column
-            block = lab[
-                y_edges[row] : y_edges[row + 1],
-                x_edges[column] : x_edges[column + 1],
-            ]
-            for channel in range(3):
-                histogram = cv2.calcHist(
-                    [block], [channel], None, [bins], [0, 256]
-                ).ravel()
-                if normalize:
-                    histogram /= max(float(histogram.sum()), 1e-12)
-                histograms[index, channel] = histogram
-
+    lw = _resolve_level_weights(level_weights, len(levels))
+    channel_weights = None
     if weights is not None:
         channel_weights = np.asarray(weights, dtype=np.float32)
         if channel_weights.shape != (3,):
             raise ValueError("weights must contain one value for each Lab channel")
-        histograms *= channel_weights[None, :, None]
 
-    if plot:
-        _plot_block_histograms(image, histograms, y_edges, x_edges, normalize)
-    return histograms.ravel()
+    block_shape = {"1d": (3, bins), "2d": (bins, bins), "3d": (bins, bins, bins)}[hist_type]
+    parts: list[np.ndarray] = []
+
+    for lvl, level_weight in zip(levels, lw):
+        y_edges = _grid_edges(height, lvl)
+        x_edges = _grid_edges(width, lvl)
+        histograms = np.empty((lvl * lvl, *block_shape), dtype=np.float32)
+
+        for row in range(lvl):
+            for column in range(lvl):
+                index = row * lvl + column
+                block = np.ascontiguousarray(
+                    lab[
+                        y_edges[row] : y_edges[row + 1],
+                        x_edges[column] : x_edges[column + 1],
+                    ]
+                )
+                if hist_type == "1d":
+                    block_hist = np.stack(
+                        [
+                            cv2.calcHist([block], [c], None, [bins], [0, 256]).ravel()
+                            for c in range(3)
+                        ]
+                    )
+                elif hist_type == "2d":
+                    block_hist = cv2.calcHist(
+                        [block], [1, 2], None, [bins, bins], [0, 256, 0, 256]
+                    )
+                else:
+                    block_hist = cv2.calcHist(
+                        [block], [0, 1, 2], None, [bins] * 3, [0, 256] * 3
+                    )
+                if normalize:
+                    if hist_type == "1d":  # each channel sums to one, as before
+                        block_hist = block_hist / np.maximum(
+                            block_hist.sum(axis=1, keepdims=True), 1e-12
+                        )
+                    else:  # joint histogram sums to one
+                        block_hist = block_hist / max(float(block_hist.sum()), 1e-12)
+                histograms[index] = block_hist
+
+        if channel_weights is not None:
+            histograms *= channel_weights[None, :, None]
+
+        if plot:
+            _plot_block_histograms(image, histograms, y_edges, x_edges, normalize)
+        parts.append(histograms.ravel() * np.float32(level_weight))
+
+    return np.concatenate(parts)
 
 
 def _plot_block_histograms(
