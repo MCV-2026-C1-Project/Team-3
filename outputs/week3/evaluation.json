@@ -1,0 +1,223 @@
+{
+  "task1_noise": {
+    "noisy_images": 21,
+    "clean_images": 9,
+    "threshold": 1.0332546480640303e-06,
+    "filters_all": [
+      {
+        "Filter": "No filter",
+        "MSE mean": 92.16554260253906,
+        "MSE std": 147.93984985351562,
+        "SSIM mean": 0.8628237025704736,
+        "SSIM std": 0.22569362542267685
+      },
+      {
+        "Filter": "Median Filter kernel 3",
+        "MSE mean": 71.87008666992188,
+        "MSE std": 116.60082244873047,
+        "SSIM mean": 0.9004691405498437,
+        "SSIM std": 0.0860057964168263
+      },
+      {
+        "Filter": "Median Filter kernel 5",
+        "MSE mean": 126.23115539550781,
+        "MSE std": 180.9606170654297,
+        "SSIM mean": 0.8386120291496503,
+        "SSIM std": 0.1080159236532028
+      },
+      {
+        "Filter": "Gaussian Filter \u03c3=1",
+        "MSE mean": 100.23973083496094,
+        "MSE std": 129.64675903320312,
+        "SSIM mean": 0.8765283536114158,
+        "SSIM std": 0.08922940465062942
+      },
+      {
+        "Filter": "Mean Filter kernel 3",
+        "MSE mean": 99.12303161621094,
+        "MSE std": 125.90571594238281,
+        "SSIM mean": 0.8736821437296565,
+        "SSIM std": 0.10066141626407754
+      },
+      {
+        "Filter": "Bilateral Filter",
+        "MSE mean": 84.43521881103516,
+        "MSE std": 108.99549865722656,
+        "SSIM mean": 0.8312151038370601,
+        "SSIM std": 0.11779607104193135
+      },
+      {
+        "Filter": "NLM h=5",
+        "MSE mean": 98.83290100097656,
+        "MSE std": 138.1934356689453,
+        "SSIM mean": 0.8295664659076679,
+        "SSIM std": 0.17730397313948995
+      },
+      {
+        "Filter": "NLM h=10",
+        "MSE mean": 94.22139739990234,
+        "MSE std": 123.58049011230469,
+        "SSIM mean": 0.8281426661131949,
+        "SSIM std": 0.11897546085708977
+      }
+    ],
+    "filters_noisy_only": [
+      {
+        "Filter": "No filter",
+        "MSE mean": 131.66506958007812,
+        "MSE std": 161.44747924804688,
+        "SSIM mean": 0.8040338608149621,
+        "SSIM std": 0.24748171574003705
+      },
+      {
+        "Filter": "Median Filter kernel 3",
+        "MSE mean": 85.4979476928711,
+        "MSE std": 132.3080291748047,
+        "SSIM mean": 0.8830951694602344,
+        "SSIM std": 0.09200758996096414
+      },
+      {
+        "Filter": "Median Filter kernel 5",
+        "MSE mean": 137.0902557373047,
+        "MSE std": 203.2211151123047,
+        "SSIM mean": 0.8310145599674489,
+        "SSIM std": 0.11002871056688479
+      },
+      {
+        "Filter": "Gaussian Filter \u03c3=1",
+        "MSE mean": 111.99800109863281,
+        "MSE std": 146.47320556640625,
+        "SSIM mean": 0.8592456289602517,
+        "SSIM std": 0.09568580938667144
+      },
+      {
+        "Filter": "Mean Filter kernel 3",
+        "MSE mean": 111.29794311523438,
+        "MSE std": 141.69386291503906,
+        "SSIM mean": 0.8529455060688045,
+        "SSIM std": 0.10861829686737981
+      },
+      {
+        "Filter": "Bilateral Filter",
+        "MSE mean": 107.56753540039062,
+        "MSE std": 122.6161880493164,
+        "SSIM mean": 0.8053147480342524,
+        "SSIM std": 0.13110135613943621
+      },
+      {
+        "Filter": "NLM h=5",
+        "MSE mean": 133.7074432373047,
+        "MSE std": 152.3458709716797,
+        "SSIM mean": 0.7910301033893877,
+        "SSIM std": 0.1993427746715806
+      },
+      {
+        "Filter": "NLM h=10",
+        "MSE mean": 118.91664123535156,
+        "MSE std": 140.39077758789062,
+        "SSIM mean": 0.8114474797510141,
+        "SSIM std": 0.13764387735976616
+      }
+    ]
+  },
+  "task2_qsd1_texture": [
+    {
+      "descriptor": "DCT (8x8 blocks, 5 coefficients, L1)",
+      "values per image": 320,
+      "mAP@1": 1.0,
+      "mAP@5": 1.0
+    },
+    {
+      "descriptor": "LBP (8 neighbours, radius 1, 16x16 blocks, L1)",
+      "values per image": 65536,
+      "mAP@1": 1.0,
+      "mAP@5": 1.0
+    },
+    {
+      "descriptor": "DWT haar, 2 levels, grid 12, L1",
+      "values per image": 1728,
+      "mAP@1": 1.0,
+      "mAP@5": 1.0
+    },
+    {
+      "descriptor": "DWT db2, 3 levels, grid 8, L1",
+      "values per image": 1152,
+      "mAP@1": 1.0,
+      "mAP@5": 1.0
+    },
+    {
+      "descriptor": "Gabor (3, 6, 12), 4 orientations, grid 4, L1",
+      "values per image": 384,
+      "mAP@1": 1.0,
+      "mAP@5": 1.0
+    }
+  ],
+  "task3_masks": {
+    "macro": {
+      "precision": 0.9294508335811847,
+      "recall": 0.9739980868216318,
+      "F1": 0.9475192387722381,
+      "painting_count_accuracy": 1.0
+    },
+    "micro": {
+      "precision": 0.9583229606894543,
+      "recall": 0.9521587889520851,
+      "F1": 0.9552309304668876
+    },
+    "count_errors": []
+  },
+  "task4_qsd2_retrieval": {
+    "selected_method": "LBP radius 2, grid 16, Hellinger",
+    "methods": {
+      "DCT (8x8 blocks, 5 coefficients, L1)": {
+        "paintings": 39,
+        "mAP@1": 0.6153846153846154,
+        "mAP@5": 0.6965811965811965,
+        "mAP@10": 0.6965811965811965,
+        "complete-query top-1 accuracy": 0.5666666666666667
+      },
+      "LBP (8 neighbours, radius 1, 16x16 blocks, L1)": {
+        "paintings": 39,
+        "mAP@1": 0.7692307692307693,
+        "mAP@5": 0.7935897435897435,
+        "mAP@10": 0.7972527472527472,
+        "complete-query top-1 accuracy": 0.7333333333333333
+      },
+      "DWT haar, 2 levels, grid 12, L1": {
+        "paintings": 39,
+        "mAP@1": 0.7948717948717948,
+        "mAP@5": 0.8277777777777777,
+        "mAP@10": 0.8309829059829059,
+        "complete-query top-1 accuracy": 0.7333333333333333
+      },
+      "DWT db2, 3 levels, grid 8, L1": {
+        "paintings": 39,
+        "mAP@1": 0.6923076923076923,
+        "mAP@5": 0.7478632478632478,
+        "mAP@10": 0.7478632478632478,
+        "complete-query top-1 accuracy": 0.6333333333333333
+      },
+      "Gabor (3, 6, 12), 4 orientations, grid 4, L1": {
+        "paintings": 39,
+        "mAP@1": 0.717948717948718,
+        "mAP@5": 0.7521367521367521,
+        "mAP@10": 0.7521367521367521,
+        "complete-query top-1 accuracy": 0.6666666666666666
+      },
+      "LBP radius 2, grid 12, L1": {
+        "paintings": 39,
+        "mAP@1": 0.8461538461538461,
+        "mAP@5": 0.8461538461538461,
+        "mAP@10": 0.8490028490028491,
+        "complete-query top-1 accuracy": 0.8333333333333334
+      },
+      "LBP radius 2, grid 16, Hellinger": {
+        "paintings": 39,
+        "mAP@1": 0.8461538461538461,
+        "mAP@5": 0.8696581196581198,
+        "mAP@10": 0.8771367521367522,
+        "complete-query top-1 accuracy": 0.8
+      }
+    }
+  }
+}

@@ -10,7 +10,7 @@ from .data import (
     read_images,
 )
 from .evaluation import evaluate_masks, evaluate_rankings, map_at_k
-from .retrieval import hellinger, retrieve_from_features
+from .retrieval import hellinger
 from .segmentation import foreground_mask, predict_foreground_masks
 from .spatial_histograms import (
     SpatialHistogramConfig,

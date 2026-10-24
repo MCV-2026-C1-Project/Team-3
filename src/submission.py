@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 
 from .data import ImageDataset
+from .retrieval import K
 
 
 def save_rankings(
@@ -102,3 +103,27 @@ def validate_submission_masks(
         if not values.issubset({0, 255}):
             raise ValueError(f"{mask_path}: mask is not binary; values={sorted(values)}")
     return len(actual_names)
+
+
+
+# added week 3
+def check_result(result, n_queries, valid_ids, k=K):
+    """Result format: query -> painting (1 or 2) -> k integer database IDs."""
+    valid_ids = {int(i) for i in valid_ids}
+    if len(result) != n_queries:
+        raise ValueError(f"Expected {n_queries} query rows, got {len(result)}")
+    for row, query in enumerate(result):
+        if not 1 <= len(query) <= 2:
+            raise ValueError(f"Query {row}: expected 1 or 2 paintings, got {len(query)}")
+        for ranking in query:
+            if len(ranking) != k:
+                raise ValueError(f"Query {row}: ranking does not have {k} results")
+            if not all(type(i) is int and i in valid_ids for i in ranking):
+                raise ValueError(f"Query {row}: non-integer or unknown database ID")
+
+
+def save_pkl(result, folder: Path):
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    with (folder / "result.pkl").open("wb") as stream:
+        pickle.dump(result, stream)

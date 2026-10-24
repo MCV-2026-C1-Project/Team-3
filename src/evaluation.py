@@ -37,6 +37,13 @@ def map_at_k(results: list[list[int]], ground_truth: list[list[int]], k: int) ->
     return float(np.mean(scores))
 
 
+def rank_configs(df, group_cols):
+    """Order: mAP@1, mAP@5, and smallest descriptor."""
+    df = df.copy()
+    return df.sort_values(["mAP@1", "mAP@5", "dim"],
+                          ascending=[False, False, True]).reset_index(drop=True)
+
+
 def mask_counts(annotation: np.ndarray, output: np.ndarray) -> dict[str, int]:
     """Return TP, FP, FN, and TN with foreground as the positive class."""
     annotation = np.asarray(annotation, dtype=bool)
@@ -100,3 +107,48 @@ def evaluate_masks(
         "micro": scores_from_counts(totals),
         "totals": totals,
     }, per_image
+
+
+
+def evaluate_painting_masks(references, predictions, regions_per_query, correspondences, query_ids):
+    """Per-image and macro / micro mask scores plus painting-count accuracy.
+
+    The expected painting count comes from the correspondences and is used
+    only for evaluation, never by the detector.
+    Returns (summary, per_image_rows).
+    """
+    rows = []
+    totals = {name: 0 for name in ("tp", "fp", "fn", "tn")}
+    for query_id, reference, prediction, regions, matches in zip(
+        query_ids, references, predictions, regions_per_query, correspondences
+    ):
+        counts = mask_counts(reference, prediction)
+        scores = scores_from_counts(counts)
+        for name in totals:
+            totals[name] += counts[name]
+        rows.append({
+            "query": int(query_id),
+            "expected paintings": len(matches),
+            "detected paintings": len(regions),
+            "precision": scores["precision"],
+            "recall": scores["recall"],
+            "F1": scores["f1"],
+        })
+
+    micro = scores_from_counts(totals)
+    summary = {
+        "macro": {
+            "precision": float(np.mean([r["precision"] for r in rows])),
+            "recall": float(np.mean([r["recall"] for r in rows])),
+            "F1": float(np.mean([r["F1"] for r in rows])),
+            "painting_count_accuracy": float(np.mean([
+                r["expected paintings"] == r["detected paintings"] for r in rows
+            ])),
+        },
+        "micro": {
+            "precision": micro["precision"],
+            "recall": micro["recall"],
+            "F1": micro["f1"],
+        },
+    }
+    return summary, rows
