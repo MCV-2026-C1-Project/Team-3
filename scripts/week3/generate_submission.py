@@ -1,8 +1,8 @@
 """Generate and validate Team 3 Week 3 blind-test submissions (QST1-W3 and QST2-W3).
 
-Single method for both test sets (Task 4 conclusion): LBP, 8 neighbours, radius 2,
-16x16 blocks, Hellinger distance, on median-filtered 256x256 grayscale images
-(`WEEK3_FINAL_CONFIG` in `src.texture_histograms`).
+Single method for both test sets (Task 4 conclusion): 60% radius-2 LBP and
+40% global Lab. The two query-to-database distance vectors are independently
+min-max normalised before fusion.
 Result format: query -> painting -> top-K database IDs.
 """
 
@@ -25,11 +25,11 @@ from src.submission import (
     save_submission_masks,
     validate_submission_masks,
 )
-from src.texture_histograms import (
-    WEEK3_FINAL_CONFIG,
-    WEEK3_FINAL_CONFIG,
-    compute_distances,
-    describe_images,
+from src.texture_histograms import describe_images
+from src.week3_retrieval import (
+    WEEK3_FINAL_RETRIEVAL,
+    describe_colour_images,
+    final_retrieval_distances,
 )
 
 
@@ -44,8 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--database-dir", type=Path, default=Path("data/BBDD"))
     parser.add_argument("--qsd1-dir", type=Path, default=Path("data/qsd1_w3"))
-    parser.add_argument("--qst1-dir", type=Path, default=Path("data/qst1_w3"))
-    parser.add_argument("--qst2-dir", type=Path, default=Path("data/qst2_w3"))
+    parser.add_argument("--qst1-dir", type=Path, default=Path("data/qst_w3/qst1_w3"))
+    parser.add_argument("--qst2-dir", type=Path, default=Path("data/qst_w3/qst2_w3"))
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -64,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     k = args.top_k
-    config = WEEK3_FINAL_CONFIG
+    config = WEEK3_FINAL_RETRIEVAL
 
     database = load_image_dataset(project_path(args.database_dir))
     qst1 = load_image_dataset(project_path(args.qst1_dir))
@@ -72,12 +72,19 @@ def main() -> int:
     qst1_images = read_images(qst1)
     qst2_images = read_images(qst2)
 
-    print("Method:", WEEK3_FINAL_CONFIG)
-    db_features = describe_images(read_images(database), config)
+    print("Method:", config.name)
+    database_images = read_images(database)
+    db_texture_features = describe_images(database_images, config.texture)
+    db_colour_features = describe_colour_images(database_images, config.colour)
 
     def retrieve(paintings, paintings_per_query):
         """query -> painting -> top-k database IDs for a flat list of paintings."""
-        distances = compute_distances(describe_images(paintings, config), db_features, config.distance)
+        distances = final_retrieval_distances(
+            paintings,
+            db_texture_features,
+            db_colour_features,
+            config,
+        )
         return rankings_from_distances(distances, database.ids, paintings_per_query, k)
 
     # Sanity check on the development set (has ground truth).

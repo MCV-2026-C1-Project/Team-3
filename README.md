@@ -1,6 +1,6 @@
 # C1 Museum Painting Retrieval
 
-Content-based image retrieval for the museum-painting dataset. The project currently covers Week 1 and Week 2: global colour histograms, spatial descriptors, background removal, masked retrieval, evaluation, and submission generation.
+Content-based image retrieval for the museum-painting dataset. The project currently covers Weeks 1–3: colour and spatial histograms, background removal, noise filtering, texture descriptors, multi-painting retrieval, evaluation, and submission generation.
 
 ## Team 3
 
@@ -25,14 +25,17 @@ src/                          shared retrieval package
   segmentation.py             colour-based background removal
   spatial_histograms.py       spatial and masked Lab descriptors
   submission.py               submission writing and validation
+  texture_histograms.py       DCT, LBP, DWT, and Gabor descriptors
+  week3_retrieval.py          selected colour-texture fusion
 scripts/
   week1/                      Week 1 evaluation and generation commands
   week2/                      Week 2 evaluation and generation commands
+  week3/                      Week 3 evaluation and generation commands
 submissions/Team3/
   week1/                      Week 1 deliverables
   week2/                      Week 2 deliverables
-week1/assets/                 Week 1 figures
-week2/cropped_histograms.ipynb
+notebooks/week-2/             Week 2 experiments
+notebooks/week-3/             Week 3 experiments
 ```
 
 The Week 2 notebook remains self-contained and unchanged. The reusable implementations extracted from the experiments live in `src/`; the command-line workflows use those shared modules.
@@ -54,6 +57,11 @@ data/qst1_w1/                Week 1 blind-test queries
 data/qsd2_w1/                Week 2 queries, masks, and correspondences
 data/qst_w2/qst1_w2/         Week 2 test images without background noise
 data/qst_w2/qst2_w2/         Week 2 test images requiring segmentation
+data/qsd1_w3/                Week 3 single-painting development queries
+data/qsd1_w3/non_augmented/  clean references for noise evaluation
+data/qsd2_w3/                Week 3 multi-painting development queries
+data/qst_w3/qst1_w3/         Week 3 single-painting blind-test queries
+data/qst_w3/qst2_w3/         Week 3 multi-painting blind-test queries
 ```
 
 ## Week 1 — Global colour histograms
@@ -117,7 +125,7 @@ The selected Week 2 descriptor is a `5 × 5` spatial Lab histogram with 48 bins 
 | Task 5 — QSD2 masked retrieval | mAP@1 | 0.700 |
 | Task 5 — QSD2 masked retrieval | mAP@5 | 0.768 |
 
-The experiment narrative, visualisations, and cell-by-cell work are in [`week2/cropped_histograms.ipynb`](week2/cropped_histograms.ipynb).
+The experiment narrative, visualisations, and cell-by-cell work are in [`notebooks/week-2/cropped_histograms.ipynb`](notebooks/week-2/cropped_histograms.ipynb).
 
 Evaluate Tasks 2, 4, and 5 with:
 
@@ -162,16 +170,70 @@ submissions/Team3/week2/
 
 Each pickle contains one ordered top-10 database-ID list per query. The QST2 method folder also contains a correctly named binary mask for every query image.
 
+## Week 3 — Noise, texture, and multi-painting retrieval
+
+Week 3 adds noise filtering and texture descriptors, then extends retrieval to query images containing one or two paintings.
+
+### Tasks
+
+1. **Noise filtering:** compare candidate filters with clean reference images using MSE and SSIM.
+2. **Texture retrieval:** evaluate DCT, LBP, DWT, and Gabor descriptors on QSD1-W3.
+3. **Background removal:** detect up to two paintings, merge foreground fragments, fit rotated rectangles, and evaluate the masks with precision, recall, and F1.
+4. **Multi-painting retrieval:** rectify every detected painting, retrieve it independently, and return one top-10 database ranking per painting.
+
+The selected Task 4 method fuses complementary colour and texture evidence:
+
+- **Texture:** 3×3 median filtering, 256×256 resize, LBP with 8 neighbours at radius 2, a 16×16 spatial grid, and Hellinger distance.
+- **Colour:** global Lab histograms with 48 bins per channel, σ=0.5 smoothing, Week 1 channel weights `0.125/0.5/0.375`, and Hellinger distance.
+- **Fusion:** independently min–max normalize the LBP and Lab database-distance vectors for each query painting, then combine them as `0.60 × LBP + 0.40 × Lab`.
+
+### Current Week 3 results
+
+| Evaluation | Metric | Score |
+|---|---|---:|
+| Task 2 — QSD1 texture retrieval | mAP@1 / mAP@5 | 1.000 / 1.000 |
+| Task 3 — mask quality, macro | Precision / Recall / F1 | 0.929 / 0.974 / 0.948 |
+| Task 3 — painting-count accuracy | Correct queries | 1.000 |
+| Task 4 — radius-2 LBP only | mAP@1 | 0.846 (33/39) |
+| **Task 4 — LBP + global Lab** | **mAP@1 / mAP@5 / mAP@10** | **0.949 / 0.957 / 0.960** |
+| Task 4 — complete-query top-1 | Correct queries | 0.933 (28/30) |
+
+Run the complete Week 3 development evaluation from the repository root:
+
+```bash
+python scripts/week3/evaluate_week3.py
+```
+
+Task 1 includes the slower non-local-means filters. To evaluate Tasks 2–4 only:
+
+```bash
+python scripts/week3/evaluate_week3.py --skip-filters
+```
+
+The evaluator writes the full machine-readable summary to `outputs/week3/evaluation.json`. Path and output overrides are listed by:
+
+```bash
+python scripts/week3/evaluate_week3.py --help
+```
+
+Generate and validate the Week 3 blind-test outputs with the same frozen fusion method:
+
+```bash
+python scripts/week3/generate_submission.py
+```
+
+The experiment narrative and visualisations are in [`notebooks/week-3/noise_filtering.ipynb`](notebooks/week-3/noise_filtering.ipynb).
+
 ## Metrics
 
 - **mAP@1:** top-1 retrieval accuracy when each query has one relevant painting.
 - **mAP@5:** rewards retrieving the relevant painting closer to the first position within the top five.
 - **Hit Rate@5:** fraction of queries whose relevant painting appears anywhere in the top five.
-- **Precision, recall, and F1:** pixel-level foreground-mask quality measures used in Task 4.
+- **Precision, recall, and F1:** pixel-level foreground-mask quality measures used for background-removal evaluation.
 
 ## Reproducibility
 
 - Dataset files are loaded in numeric filename order.
 - Retrieval outputs contain plain Python integer IDs.
 - Submission scripts validate row counts, ranking length, database IDs, mask names, dimensions, and binary values before completing.
-- Method configurations are defined centrally in `src/methods.py`.
+- Method configurations are defined centrally in `src/methods.py`, `src/texture_histograms.py`, and `src/week3_retrieval.py`.

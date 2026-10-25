@@ -3,7 +3,8 @@ painting detection / background removal on QSD2-W3 (Task 3) and
 multi-painting retrieval on QSD2-W3 (Task 4).
 
 Every texture method is a preset of `src.texture_histograms.TEXTURE_PRESETS`.
-Database descriptors are computed once per preset and reused by Tasks 2 and 4.
+Task 4 additionally evaluates the selected 60% LBP / 40% global Lab fusion.
+Database descriptors are computed once and reused by Tasks 2 and 4.
 """
 
 import argparse
@@ -27,8 +28,12 @@ from src.retrieval import (
     ranking_key,
     rankings_from_distances,
 )
+from src.week3_retrieval import (
+    WEEK3_FINAL_RETRIEVAL,
+    describe_colour_images,
+    final_retrieval_distances,
+)
 from src.texture_histograms import (
-    WEEK3_FINAL_CONFIG,
     TEXTURE_PRESETS,
     WEEK3_LBP_R2_G12_L1,
     WEEK3_LBP_R2_G16_HELLINGER,
@@ -178,7 +183,14 @@ def run_task3(qsd2, qsd2_imgs, qsd2_ground_truth, reference_masks):
 # ----------------------------------------------------------------------
 # Task 4 - multi-painting retrieval on QSD2-W3
 # ----------------------------------------------------------------------
-def run_task4(qsd2_imgs, all_regions, qsd2_ground_truth, db_features: dict, db_ids) -> dict:
+def run_task4(
+    qsd2_imgs,
+    all_regions,
+    qsd2_ground_truth,
+    db_features: dict,
+    db_colour_features,
+    db_ids,
+) -> dict:
     query_paintings = [
         [extract_painting(image, region) for region in regions]
         for image, regions in zip(qsd2_imgs, all_regions)
@@ -192,6 +204,17 @@ def run_task4(qsd2_imgs, all_regions, qsd2_ground_truth, db_features: dict, db_i
         name: compute_distances(describe_images(flat_paintings, config), db_features[name], config.distance)
         for name, config in TEXTURE_PRESETS.items()
     }
+    final_texture_name = next(
+        name
+        for name, config in TEXTURE_PRESETS.items()
+        if config == WEEK3_FINAL_RETRIEVAL.texture
+    )
+    distance_matrices[WEEK3_FINAL_RETRIEVAL.name] = final_retrieval_distances(
+        flat_paintings,
+        db_features[final_texture_name],
+        db_colour_features,
+        WEEK3_FINAL_RETRIEVAL,
+    )
 
     method_scores = {
         name: correspondence_metrics(
@@ -211,10 +234,16 @@ def run_task4(qsd2_imgs, all_regions, qsd2_ground_truth, db_features: dict, db_i
 
     best_key = max(method_scores, key=lambda name: ranking_key(method_scores[name]))
     print(f"Best method by (mAP@1, mAP@5, mAP@10): {best_key}")
-    # Preset name of the final configuration (JSON-serialisable, unlike the config object).
-    final_name = next(name for name, config in TEXTURE_PRESETS.items() if config == WEEK3_FINAL_CONFIG)
+    final_name = WEEK3_FINAL_RETRIEVAL.name
     print(f"Selected method (frozen for submission): {final_name}")
-    return {"selected_method": final_name, "methods": method_scores}
+    return {
+        "selected_method": final_name,
+        "selected_weights": {
+            "LBP": WEEK3_FINAL_RETRIEVAL.texture_weight,
+            "global_Lab": WEEK3_FINAL_RETRIEVAL.colour_weight,
+        },
+        "methods": method_scores,
+    }
 
 
 def main() -> int:
@@ -241,6 +270,7 @@ def main() -> int:
 
     # Database descriptors: computed once per preset, shared by Tasks 2 and 4.
     db_features = {name: describe_images(db_imgs, config) for name, config in TEXTURE_PRESETS.items()}
+    db_colour_features = describe_colour_images(db_imgs, WEEK3_FINAL_RETRIEVAL.colour)
 
     summary: dict = {}
     if not args.skip_filters:
@@ -248,7 +278,12 @@ def main() -> int:
     summary["task2_qsd1_texture"] = run_task2(db_features, qsd1_imgs, qsd1_ground_truth, database.ids)
     summary["task3_masks"], all_regions = run_task3(qsd2, qsd2_imgs, qsd2_ground_truth, reference_masks)
     summary["task4_qsd2_retrieval"] = run_task4(
-        qsd2_imgs, all_regions, qsd2_ground_truth, db_features, database.ids
+        qsd2_imgs,
+        all_regions,
+        qsd2_ground_truth,
+        db_features,
+        db_colour_features,
+        database.ids,
     )
 
     output = project_path(args.output)

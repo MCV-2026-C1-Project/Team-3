@@ -95,7 +95,8 @@ WEEK3_GABOR = TextureDescriptorConfig(
     method="gabor", grid=4, wavelengths=(3, 6, 12), n_orient=4
 )
 
-# LBP variants tuned on QSD2-W3 (Task 4). The last one is the final method.
+# LBP variants tuned on QSD2-W3 (Task 4). The last one is the selected texture
+# component of the final colour-texture method in ``src.week3_retrieval``.
 WEEK3_LBP_R2_G12_L1 = TextureDescriptorConfig(
     method="lbp", grid=12, scales=((8, 2.0),), distance="l1"
 )
@@ -103,7 +104,9 @@ WEEK3_LBP_R2_G16_HELLINGER = TextureDescriptorConfig(
     method="lbp", grid=16, scales=((8, 2.0),), distance="hellinger"
 )
 
-WEEK3_FINAL_CONFIG = WEEK3_LBP_R2_G16_HELLINGER
+WEEK3_FINAL_TEXTURE_CONFIG = WEEK3_LBP_R2_G16_HELLINGER
+# Backwards-compatible name retained for notebooks that imported it earlier.
+WEEK3_FINAL_CONFIG = WEEK3_FINAL_TEXTURE_CONFIG
 
 TEXTURE_PRESETS = {
     "DCT (8x8 blocks, 5 coefficients, L1)": WEEK3_DCT,
