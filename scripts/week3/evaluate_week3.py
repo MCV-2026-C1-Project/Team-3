@@ -28,7 +28,7 @@ from src.retrieval import (
     ranking_key,
     rankings_from_distances,
 )
-from src.week3_retrieval import (
+from src.colour_texture_retrieval import (
     WEEK3_FINAL_RETRIEVAL,
     describe_colour_images,
     final_retrieval_distances,

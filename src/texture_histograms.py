@@ -96,7 +96,7 @@ WEEK3_GABOR = TextureDescriptorConfig(
 )
 
 # LBP variants tuned on QSD2-W3 (Task 4). The last one is the selected texture
-# component of the final colour-texture method in ``src.week3_retrieval``.
+# component of the final method in ``src.colour_texture_retrieval``.
 WEEK3_LBP_R2_G12_L1 = TextureDescriptorConfig(
     method="lbp", grid=12, scales=((8, 2.0),), distance="l1"
 )

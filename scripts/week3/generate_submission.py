@@ -26,7 +26,7 @@ from src.submission import (
     validate_submission_masks,
 )
 from src.texture_histograms import describe_images
-from src.week3_retrieval import (
+from src.colour_texture_retrieval import (
     WEEK3_FINAL_RETRIEVAL,
     describe_colour_images,
     final_retrieval_distances,

@@ -26,7 +26,7 @@ src/                          shared retrieval package
   spatial_histograms.py       spatial and masked Lab descriptors
   submission.py               submission writing and validation
   texture_histograms.py       DCT, LBP, DWT, and Gabor descriptors
-  week3_retrieval.py          selected colour-texture fusion
+  colour_texture_retrieval.py selected colour-texture retrieval and fusion
 scripts/
   week1/                      Week 1 evaluation and generation commands
   week2/                      Week 2 evaluation and generation commands
@@ -236,4 +236,4 @@ The experiment narrative and visualisations are in [`notebooks/week-3/noise_filt
 - Dataset files are loaded in numeric filename order.
 - Retrieval outputs contain plain Python integer IDs.
 - Submission scripts validate row counts, ranking length, database IDs, mask names, dimensions, and binary values before completing.
-- Method configurations are defined centrally in `src/methods.py`, `src/texture_histograms.py`, and `src/week3_retrieval.py`.
+- Method configurations are defined centrally in `src/methods.py`, `src/texture_histograms.py`, and `src/colour_texture_retrieval.py`.
