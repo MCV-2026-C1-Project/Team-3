@@ -1,0 +1,363 @@
+{
+  "week4_config": {
+    "name": "rectified SIFT + Lowe ratio + RANSAC + unknown rejection",
+    "thinness_threshold": 0.3,
+    "frame_min_area": 0.08,
+    "rectify": true,
+    "nfeatures": 3000,
+    "ratio": 0.75,
+    "ransac_threshold": 4.0,
+    "shortlist": 30,
+    "topk": 10,
+    "unknown_inlier_threshold": 4.5
+  },
+  "week3_config": {
+    "name": "60% LBP radius 2 + 40% global Lab",
+    "texture": {
+      "method": "lbp",
+      "grid": 16,
+      "size": 256,
+      "denoise": true,
+      "distance": "hellinger",
+      "block_size": 16,
+      "n_coefs": 5,
+      "skip_dc": true,
+      "scales": [
+        [
+          8,
+          2.0
+        ]
+      ],
+      "uniform": false,
+      "wavelet": "haar",
+      "levels": 2,
+      "wavelengths": [
+        4,
+        8,
+        16
+      ],
+      "n_orient": 6,
+      "sigma_factor": 0.56
+    },
+    "colour": {
+      "levels": [
+        1
+      ],
+      "bins": 48,
+      "sigma": 0.5,
+      "channel_weights": [
+        0.125,
+        0.5,
+        0.375
+      ],
+      "hist_type": "1d",
+      "level_weights": null
+    },
+    "colour_distance": "hellinger",
+    "texture_weight": 0.6,
+    "colour_weight": 0.4
+  },
+  "painting_detection": {
+    "macro": {
+      "precision": 0.9188334407409487,
+      "recall": 0.9474921611729994,
+      "F1": 0.9158299468277408,
+      "painting_count_accuracy": 1.0
+    },
+    "micro": {
+      "precision": 0.9456624215775601,
+      "recall": 0.868563787586895,
+      "F1": 0.9054748856729206
+    },
+    "detected_paintings": 39,
+    "ground_truth_paintings": 39,
+    "per_query": [
+      {
+        "query": 0,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9670725743083387,
+        "recall": 0.9841568600301562,
+        "F1": 0.9755399251397997
+      },
+      {
+        "query": 1,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.99760954130324,
+        "recall": 0.8945446057545632,
+        "F1": 0.9432701190965235
+      },
+      {
+        "query": 2,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.90892230480318,
+        "recall": 1.0,
+        "F1": 0.9522884221282067
+      },
+      {
+        "query": 3,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9158553274682307,
+        "recall": 1.0,
+        "F1": 0.9560798399934691
+      },
+      {
+        "query": 4,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9719766188309836,
+        "recall": 1.0,
+        "F1": 0.9857891919704256
+      },
+      {
+        "query": 5,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 1.0,
+        "recall": 0.8392989985828736,
+        "F1": 0.9126292127919703
+      },
+      {
+        "query": 6,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.9846837477545618,
+        "recall": 0.8409671728080552,
+        "F1": 0.9071687233658007
+      },
+      {
+        "query": 7,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9845624446255858,
+        "recall": 0.9925090136502488,
+        "F1": 0.988519759062835
+      },
+      {
+        "query": 8,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.790923955559883,
+        "recall": 1.0,
+        "F1": 0.8832579999887515
+      },
+      {
+        "query": 9,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.9184471566799989,
+        "recall": 1.0,
+        "F1": 0.9574901799947757
+      },
+      {
+        "query": 10,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.9172739733317224,
+        "recall": 0.9971403734243911,
+        "F1": 0.9555412221500558
+      },
+      {
+        "query": 11,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9555004907055329,
+        "recall": 0.9990979549669103,
+        "F1": 0.9768130004885496
+      },
+      {
+        "query": 12,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9613895613029261,
+        "recall": 0.9633086511583573,
+        "F1": 0.9623481494817214
+      },
+      {
+        "query": 13,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.8508484891042296,
+        "recall": 1.0,
+        "F1": 0.9194145216241031
+      },
+      {
+        "query": 14,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 1.0,
+        "recall": 0.06688276368711556,
+        "F1": 0.1253797811035407
+      },
+      {
+        "query": 15,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9118085158088246,
+        "recall": 1.0,
+        "F1": 0.9538701269180901
+      },
+      {
+        "query": 16,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.8667046209317772,
+        "recall": 1.0,
+        "F1": 0.9285932131020881
+      },
+      {
+        "query": 17,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9490902679697768,
+        "recall": 0.9984965195282598,
+        "F1": 0.973166726504013
+      },
+      {
+        "query": 18,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.7764744561931932,
+        "recall": 1.0,
+        "F1": 0.8741746367207555
+      },
+      {
+        "query": 19,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9065175984011321,
+        "recall": 1.0,
+        "F1": 0.9509669348569006
+      },
+      {
+        "query": 20,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 1.0,
+        "recall": 0.887758504268595,
+        "F1": 0.9405424499597778
+      },
+      {
+        "query": 21,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9346463536844102,
+        "recall": 0.9992818387919266,
+        "F1": 0.9658839770405331
+      },
+      {
+        "query": 22,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.922645004437927,
+        "recall": 1.0,
+        "F1": 0.9597663659263571
+      },
+      {
+        "query": 23,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9320634705495101,
+        "recall": 1.0,
+        "F1": 0.9648373200538968
+      },
+      {
+        "query": 24,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.8816730081612908,
+        "recall": 1.0,
+        "F1": 0.9371160710041037
+      },
+      {
+        "query": 25,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.721449046791914,
+        "recall": 1.0,
+        "F1": 0.8381880929167247
+      },
+      {
+        "query": 26,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9183031590035992,
+        "recall": 1.0,
+        "F1": 0.957411923859399
+      },
+      {
+        "query": 27,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9339504230762862,
+        "recall": 1.0,
+        "F1": 0.9658473267279258
+      },
+      {
+        "query": 28,
+        "expected paintings": 2,
+        "detected paintings": 2,
+        "precision": 0.8103879145372267,
+        "recall": 0.9999111066664444,
+        "F1": 0.8952287627214756
+      },
+      {
+        "query": 29,
+        "expected paintings": 1,
+        "detected paintings": 1,
+        "precision": 0.9742231969031823,
+        "recall": 0.9614104718720861,
+        "F1": 0.9677744281396518
+      }
+    ]
+  },
+  "retrieval_comparison": [
+    {
+      "system": "Week 3 full pipeline",
+      "detected_paintings": 35,
+      "correct_query_counts": 24,
+      "known_mAP@1": 0.6551724137931034,
+      "known_mAP@5": 0.6839080459770115,
+      "known_mAP@10": 0.6877394636015325,
+      "all_mAP@1": 0.48717948717948717,
+      "all_mAP@5": 0.5085470085470085,
+      "all_mAP@10": 0.5113960113960113
+    },
+    {
+      "system": "Week 3 retrieval on Week 4 crops",
+      "detected_paintings": 39,
+      "correct_query_counts": 30,
+      "known_mAP@1": 0.8620689655172413,
+      "known_mAP@5": 0.9080459770114943,
+      "known_mAP@10": 0.9080459770114943,
+      "all_mAP@1": 0.6410256410256411,
+      "all_mAP@5": 0.6752136752136753,
+      "all_mAP@10": 0.6752136752136753
+    },
+    {
+      "system": "Week 4 retrieval without rejection",
+      "detected_paintings": 39,
+      "correct_query_counts": 30,
+      "known_mAP@1": 0.9310344827586207,
+      "known_mAP@5": 0.9310344827586207,
+      "known_mAP@10": 0.9310344827586207,
+      "all_mAP@1": 0.6923076923076923,
+      "all_mAP@5": 0.6923076923076923,
+      "all_mAP@10": 0.6923076923076923
+    },
+    {
+      "system": "Week 4 final with unknown rejection",
+      "detected_paintings": 39,
+      "correct_query_counts": 30,
+      "known_mAP@1": 0.9310344827586207,
+      "known_mAP@5": 0.9310344827586207,
+      "known_mAP@10": 0.9310344827586207,
+      "all_mAP@1": 0.9487179487179487,
+      "all_mAP@5": 0.9487179487179487,
+      "all_mAP@10": 0.9487179487179487
+    }
+  ]
+}

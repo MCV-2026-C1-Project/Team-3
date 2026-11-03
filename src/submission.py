@@ -107,19 +107,33 @@ def validate_submission_masks(
 
 
 # added week 3
-def check_result(result, n_queries, valid_ids, k=K):
-    """Result format: query -> painting (1 or 2) -> k integer database IDs."""
+def check_result(result, n_queries, valid_ids, k=K, allow_unknown=False):
+    """Validate query -> painting -> ranking results.
+
+    When ``allow_unknown`` is true, a painting may be represented by exactly
+    ``[-1]`` instead of a top-k database ranking, as required in Week 4.
+    """
     valid_ids = {int(i) for i in valid_ids}
+    if type(result) is not list:
+        raise TypeError("Submission result must be a Python list")
     if len(result) != n_queries:
         raise ValueError(f"Expected {n_queries} query rows, got {len(result)}")
     for row, query in enumerate(result):
+        if type(query) is not list:
+            raise TypeError(f"Query {row}: expected a list of paintings")
         if not 1 <= len(query) <= 2:
             raise ValueError(f"Query {row}: expected 1 or 2 paintings, got {len(query)}")
         for ranking in query:
+            if type(ranking) is not list:
+                raise TypeError(f"Query {row}: ranking must be a Python list")
+            if allow_unknown and ranking == [-1]:
+                continue
             if len(ranking) != k:
                 raise ValueError(f"Query {row}: ranking does not have {k} results")
             if not all(type(i) is int and i in valid_ids for i in ranking):
                 raise ValueError(f"Query {row}: non-integer or unknown database ID")
+            if len(set(ranking)) != k:
+                raise ValueError(f"Query {row}: ranking contains duplicate database IDs")
 
 
 def save_pkl(result, folder: Path):

@@ -10,6 +10,7 @@ from .data import (
     read_images,
 )
 from .evaluation import evaluate_masks, evaluate_rankings, map_at_k
+from .local_features import LocalFeatureRetrievalConfig, WEEK4_FINAL_RETRIEVAL
 from .retrieval import hellinger
 from .segmentation import foreground_mask, predict_foreground_masks
 from .spatial_histograms import (
@@ -29,6 +30,7 @@ __all__ = [
     "ColorHistogramRetrieval",
     "HistogramConfig",
     "ImageDataset",
+    "LocalFeatureRetrievalConfig",
     "SpatialHistogramConfig",
     "descriptor",
     "descriptor_masked",
@@ -49,4 +51,5 @@ __all__ = [
     "simple_segment_and_histogram",
     "validate_rankings",
     "validate_submission_masks",
+    "WEEK4_FINAL_RETRIEVAL",
 ]
