@@ -216,7 +216,7 @@ def _frame_candidates(
 
 def find_paintings(
     image: np.ndarray,
-    max_paintings: int = 2,
+    max_paintings: int = 4,
     component_min_area: float = 0.005,
     painting_min_area: float = 0.02,
     merge_gap_fraction: float = 0.04,
