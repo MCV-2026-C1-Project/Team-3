@@ -54,7 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("outputs/week4/evaluation_4.json"),
+        default=Path("outputs/week4/evaluation.json"),
     )
     return parser
 
