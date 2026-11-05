@@ -40,12 +40,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qst1-dir",
         type=Path,
-        default=Path("data/qst_w4/qst1_w4"),
+        default=Path("data/qst1_w4"),
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("submissions/Team3/week4"),
+        default=Path("submissions/week4"),
     )
     parser.add_argument("--method-name", default="method1")
     parser.add_argument(
